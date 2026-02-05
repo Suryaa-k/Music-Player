@@ -3,11 +3,11 @@ let playlist = [];
 let currentIndex = 0;
 let isPlaying = false;
 
-// YouTube IFrame API
+// YouTube IFrame API (hidden, audio only)
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('player', {
-        height: '100%',
-        width: '100%',
+        height: '1',
+        width: '1',
         playerVars: {
             'playsinline': 1,
             'controls': 0,
@@ -22,7 +22,7 @@ function onYouTubeIframeAPIReady() {
 }
 
 function onPlayerReady(event) {
-    console.log('✅ YouTube Player ready');
+    console.log('✅ YouTube Player ready (audio only mode)');
     updateVolumeDisplay();
 }
 
@@ -116,7 +116,7 @@ function addToPlaylist(item) {
         id: item.id.videoId,
         title: item.snippet.title,
         artist: item.snippet.channelTitle,
-        thumbnail: item.snippet.thumbnails.medium.url
+        thumbnail: item.snippet.thumbnails.medium.url || item.snippet.thumbnails.high.url
     };
 
     playlist.push(song);
@@ -155,7 +155,11 @@ function playSong(index) {
     currentIndex = index;
     const song = playlist[index];
     
+    // Load YouTube video (hidden, audio only)
     player.loadVideoById(song.id);
+    
+    // Update UI with album art
+    document.getElementById('albumArt').src = song.thumbnail;
     document.getElementById('currentSong').textContent = song.title;
     document.getElementById('currentArtist').textContent = song.artist;
     
