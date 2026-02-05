@@ -61,12 +61,42 @@ app.get('/api/search', async (req, res) => {
 });
 
 // Lyrics API
+// Lyrics API with multiple fallbacks
 app.get('/api/lyrics', async (req, res) => {
   try {
     const { artist, title } = req.query;
-    const response = await axios.get(`https://api.lyrics.ovh/v1/${artist}/${title}`);
-    res.json(response.data);
+    
+    console.log(`🔍 Searching lyrics for: ${artist} - ${title}`);
+    
+    // Try Method 1: lyrics.ovh
+    try {
+      const response1 = await axios.get(`https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`);
+      if (response1.data.lyrics) {
+        console.log('✅ Lyrics found via lyrics.ovh');
+        return res.json(response1.data);
+      }
+    } catch (err) {
+      console.log('❌ lyrics.ovh failed, trying next...');
+    }
+    
+    // Try Method 2: Genius API (via scraping)
+    try {
+      const searchQuery = `${artist} ${title} lyrics`;
+      const response2 = await axios.get(`https://some-random-api.ml/lyrics?title=${encodeURIComponent(searchQuery)}`);
+      if (response2.data.lyrics) {
+        console.log('✅ Lyrics found via some-random-api');
+        return res.json({ lyrics: response2.data.lyrics });
+      }
+    } catch (err) {
+      console.log('❌ some-random-api failed');
+    }
+    
+    // If all fail, return not found
+    console.log('❌ No lyrics found from any source');
+    res.status(404).json({ error: 'Lyrics not found' });
+    
   } catch (error) {
+    console.error('Lyrics error:', error.message);
     res.status(404).json({ error: 'Lyrics not found' });
   }
 });

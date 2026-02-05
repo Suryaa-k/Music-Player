@@ -238,26 +238,81 @@ function formatTime(seconds) {
 }
 
 // Lyrics fetching
+// Improved lyrics fetching with better cleaning
 async function fetchLyrics(artist, title) {
     const lyricsContainer = document.getElementById('lyricsContainer');
-    lyricsContainer.innerHTML = '<p class="no-lyrics">Loading lyrics...</p>';
+    lyricsContainer.innerHTML = '<p class="no-lyrics">🔍 Loading lyrics...</p>';
 
     try {
-        const cleanTitle = title.split('(')[0].split('[')[0].split('|')[0].split('-')[0].trim();
-        const cleanArtist = artist.split('-')[0].split('•')[0].split('VEVO')[0].trim();
+        // Clean up artist and title
+        let cleanTitle = title
+            .replace(/\(.*?\)/g, '') // Remove (Official Video)
+            .replace(/\[.*?\]/g, '') // Remove [Official Audio]
+            .replace(/\|.*$/g, '')   // Remove | anything
+            .split('-')[0]           // Take first part before -
+            .replace(/official|audio|video|lyric|lyrics|hd|4k/gi, '') // Remove common words
+            .trim();
+        
+        let cleanArtist = artist
+            .split('-')[0]
+            .split('•')[0]
+            .replace(/VEVO|Topic|Official/gi, '')
+            .trim();
+        
+        console.log(`Fetching lyrics for: ${cleanArtist} - ${cleanTitle}`);
         
         const response = await fetch(`/api/lyrics?artist=${encodeURIComponent(cleanArtist)}&title=${encodeURIComponent(cleanTitle)}`);
         const data = await response.json();
         
         if (data.lyrics) {
+            console.log('✅ Lyrics loaded successfully');
             lyricsContainer.innerHTML = `<pre>${data.lyrics}</pre>`;
         } else {
-            lyricsContainer.innerHTML = '<p class="no-lyrics">Lyrics not found for this song</p>';
+            console.log('❌ No lyrics in response');
+            lyricsContainer.innerHTML = `
+                <p class="no-lyrics">
+                    😔 Lyrics not found for this song<br><br>
+                    <small>Searched for: ${cleanArtist} - ${cleanTitle}</small>
+                </p>
+            `;
         }
     } catch (error) {
-        lyricsContainer.innerHTML = '<p class="no-lyrics">Lyrics not available</p>';
+        console.error('Lyrics fetch error:', error);
+        lyricsContainer.innerHTML = `
+            <p class="no-lyrics">
+                ⚠️ Could not load lyrics<br><br>
+                <small>The lyrics service might be temporarily unavailable</small>
+            </p>
+        `;
     }
 }
+
+// TEST FUNCTION - Remove after debugging
+function testLyrics() {
+    const lyricsContainer = document.getElementById('lyricsContainer');
+    lyricsContainer.innerHTML = `<pre>
+This is a test lyric
+To check if the layout works
+Line 1
+Line 2
+Line 3
+Line 4
+Line 5
+Line 6
+Line 7
+Line 8
+Line 9
+Line 10
+
+If you can see this,
+the layout is working fine!
+
+The issue is with the lyrics API.
+</pre>`;
+}
+
+// Call this after 3 seconds to test
+setTimeout(testLyrics, 3000);
 
 // Initialize
 window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;

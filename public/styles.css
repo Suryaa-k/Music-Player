@@ -79,15 +79,6 @@ header h1 {
     transform: translateY(-2px);
 }
 
-/* Main Content - Side by Side Layout */
-.main-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-    height: calc(100vh - 300px);
-    min-height: 600px;
-}
-
 /* Player Section - Left Side */
 .player-section {
     background: linear-gradient(135deg, #1e3a5f 0%, #2d5a7b 50%, #3a7ca5 100%);
@@ -283,56 +274,6 @@ header h1 {
     display: none;
 }
 
-/* Lyrics Section - Right Side */
-.lyrics-section {
-    background: linear-gradient(135deg, #d4a574 0%, #c89666 50%, #b8865a 100%);
-    padding: 40px;
-    overflow-y: auto;
-    position: relative;
-}
-
-.lyrics-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 70% 50%, rgba(255,255,255,0.15) 0%, transparent 50%);
-    pointer-events: none;
-}
-
-.lyrics-section h2 {
-    margin-bottom: 30px;
-    font-size: 1.5em;
-    font-weight: 600;
-    position: relative;
-    z-index: 1;
-}
-
-#lyricsContainer {
-    line-height: 2;
-    font-size: 1.1em;
-    white-space: pre-wrap;
-    position: relative;
-    z-index: 1;
-    color: rgba(255,255,255,0.95);
-}
-
-#lyricsContainer pre {
-    font-family: inherit;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-
-.no-lyrics {
-    text-align: center;
-    color: rgba(255,255,255,0.6);
-    font-style: italic;
-    padding: 60px 20px;
-    font-size: 1.1em;
-}
-
 /* Playlist Section - Bottom */
 .playlist-section {
     background: rgba(0,0,0,0.9);
@@ -525,4 +466,70 @@ header h1 {
     height: 1px;
     opacity: 0;
     pointer-events: none;
+}
+
+/* Make sure main content is visible */
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    min-height: 600px;
+    height: calc(100vh - 300px);
+}
+
+/* Lyrics Section - Right Side */
+.lyrics-section {
+    background: linear-gradient(135deg, #d4a574 0%, #c89666 50%, #b8865a 100%);
+    padding: 40px;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.lyrics-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 70% 50%, rgba(255,255,255,0.15) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.lyrics-section h2 {
+    margin-bottom: 30px;
+    font-size: 1.5em;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+    color: #fff;
+}
+
+#lyricsContainer {
+    flex: 1;
+    line-height: 2;
+    font-size: 1.1em;
+    white-space: pre-wrap;
+    position: relative;
+    z-index: 1;
+    color: rgba(255,255,255,0.95);
+    overflow-y: auto;
+}
+
+#lyricsContainer pre {
+    font-family: inherit;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+    padding: 0;
+}
+
+.no-lyrics {
+    text-align: center;
+    color: rgba(255,255,255,0.6);
+    font-style: italic;
+    padding: 60px 20px;
+    font-size: 1.1em;
 }
