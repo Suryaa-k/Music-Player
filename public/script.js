@@ -2,9 +2,11 @@ let player;
 let playlist = [];
 let currentIndex = 0;
 let isPlaying = false;
+let progressInterval;
 
-// YouTube IFrame API (hidden, audio only)
-function onYouTubeIframeAPIReady() {
+// YouTube IFrame API Ready
+window.onYouTubeIframeAPIReady = function() {
+    console.log('🎬 YouTube API loaded');
     player = new YT.Player('player', {
         height: '1',
         width: '1',
@@ -12,21 +14,26 @@ function onYouTubeIframeAPIReady() {
             'playsinline': 1,
             'controls': 0,
             'modestbranding': 1,
-            'rel': 0
+            'rel': 0,
+            'enablejsapi': 1
         },
         events: {
             'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange
+            'onStateChange': onPlayerStateChange,
+            'onError': onPlayerError
         }
     });
-}
+};
 
 function onPlayerReady(event) {
-    console.log('✅ YouTube Player ready (audio only mode)');
+    console.log('✅ YouTube Player ready');
+    player.setVolume(50);
     updateVolumeDisplay();
 }
 
 function onPlayerStateChange(event) {
+    console.log('Player state:', event.data);
+    
     if (event.data === YT.PlayerState.PLAYING) {
         isPlaying = true;
         document.getElementById('playPauseBtn').textContent = '⏸️';
@@ -34,9 +41,18 @@ function onPlayerStateChange(event) {
     } else if (event.data === YT.PlayerState.PAUSED) {
         isPlaying = false;
         document.getElementById('playPauseBtn').textContent = '▶️';
+        stopProgressUpdate();
     } else if (event.data === YT.PlayerState.ENDED) {
         playNext();
+    } else if (event.data === YT.PlayerState.BUFFERING) {
+        console.log('⏳ Buffering...');
     }
+}
+
+function onPlayerError(event) {
+    console.error('❌ Player error:', event.data);
+    alert('Failed to play this video. Trying next...');
+    playNext();
 }
 
 // Search functionality
@@ -116,10 +132,11 @@ function addToPlaylist(item) {
         id: item.id.videoId,
         title: item.snippet.title,
         artist: item.snippet.channelTitle,
-        thumbnail: item.snippet.thumbnails.medium.url || item.snippet.thumbnails.high.url
+        thumbnail: item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default.url
     };
 
     playlist.push(song);
+    console.log('Added to playlist:', song.title);
     updatePlaylistDisplay();
     
     if (playlist.length === 1) {
@@ -150,15 +167,27 @@ function updatePlaylistDisplay() {
 }
 
 function playSong(index) {
-    if (!playlist[index]) return;
+    if (!playlist[index]) {
+        console.error('Song not found at index:', index);
+        return;
+    }
+    
+    if (!player || !player.loadVideoById) {
+        console.error('Player not ready yet');
+        alert('Player is loading, please wait...');
+        return;
+    }
     
     currentIndex = index;
     const song = playlist[index];
     
-    // Load YouTube video (hidden, audio only)
+    console.log('🎵 Playing:', song.title);
+    console.log('Video ID:', song.id);
+    
+    // Load and play video
     player.loadVideoById(song.id);
     
-    // Update UI with album art
+    // Update UI
     document.getElementById('albumArt').src = song.thumbnail;
     document.getElementById('currentSong').textContent = song.title;
     document.getElementById('currentArtist').textContent = song.artist;
@@ -171,6 +200,11 @@ function playSong(index) {
 document.getElementById('playPauseBtn').addEventListener('click', () => {
     if (playlist.length === 0) {
         alert('Please add songs to playlist first!');
+        return;
+    }
+    
+    if (!player || !player.getPlayerState) {
+        alert('Player not ready yet');
         return;
     }
     
@@ -187,47 +221,67 @@ document.getElementById('nextBtn').addEventListener('click', playNext);
 function playPrevious() {
     if (currentIndex > 0) {
         playSong(currentIndex - 1);
+    } else {
+        alert('Already at first song');
     }
 }
 
 function playNext() {
     if (currentIndex < playlist.length - 1) {
         playSong(currentIndex + 1);
+    } else {
+        alert('Already at last song');
     }
 }
 
 // Volume control
 document.getElementById('volumeControl').addEventListener('input', (e) => {
-    const volume = e.target.value;
-    player.setVolume(volume);
-    document.getElementById('volumeValue').textContent = volume + '%';
+    if (player && player.setVolume) {
+        const volume = e.target.value;
+        player.setVolume(volume);
+        document.getElementById('volumeValue').textContent = volume + '%';
+    }
 });
 
 function updateVolumeDisplay() {
-    const volume = player.getVolume();
-    document.getElementById('volumeControl').value = volume;
-    document.getElementById('volumeValue').textContent = Math.round(volume) + '%';
+    if (player && player.getVolume) {
+        const volume = player.getVolume();
+        document.getElementById('volumeControl').value = volume;
+        document.getElementById('volumeValue').textContent = Math.round(volume) + '%';
+    }
 }
 
 // Progress bar
 document.getElementById('progressBar').addEventListener('input', (e) => {
-    const duration = player.getDuration();
-    const seekTo = (e.target.value / 100) * duration;
-    player.seekTo(seekTo);
+    if (player && player.getDuration) {
+        const duration = player.getDuration();
+        const seekTo = (e.target.value / 100) * duration;
+        player.seekTo(seekTo);
+    }
 });
 
 function startProgressUpdate() {
-    setInterval(() => {
-        if (isPlaying && player && player.getCurrentTime) {
+    stopProgressUpdate();
+    progressInterval = setInterval(() => {
+        if (player && player.getCurrentTime && player.getDuration) {
             const currentTime = player.getCurrentTime();
             const duration = player.getDuration();
-            const progress = (currentTime / duration) * 100;
             
-            document.getElementById('progressBar').value = progress || 0;
-            document.getElementById('currentTime').textContent = formatTime(currentTime);
-            document.getElementById('duration').textContent = formatTime(duration);
+            if (duration > 0) {
+                const progress = (currentTime / duration) * 100;
+                document.getElementById('progressBar').value = progress;
+                document.getElementById('currentTime').textContent = formatTime(currentTime);
+                document.getElementById('duration').textContent = formatTime(duration);
+            }
         }
     }, 1000);
+}
+
+function stopProgressUpdate() {
+    if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+    }
 }
 
 function formatTime(seconds) {
@@ -238,19 +292,17 @@ function formatTime(seconds) {
 }
 
 // Lyrics fetching
-// Improved lyrics fetching with AI generation
 async function fetchLyrics(artist, title) {
     const lyricsContainer = document.getElementById('lyricsContainer');
-    lyricsContainer.innerHTML = '<p class="no-lyrics">🔍 Searching for lyrics...</p>';
+    lyricsContainer.innerHTML = '<p class="no-lyrics">🔍 Loading lyrics...</p>';
 
     try {
-        // Clean up artist and title
         let cleanTitle = title
             .replace(/\(.*?\)/g, '')
             .replace(/\[.*?\]/g, '')
             .replace(/\|.*$/g, '')
             .split('-')[0]
-            .replace(/official|audio|video|lyric|lyrics|hd|4k/gi, '')
+            .replace(/official|audio|video|lyric|lyrics|hd|4k|full/gi, '')
             .trim();
         
         let cleanArtist = artist
@@ -259,74 +311,33 @@ async function fetchLyrics(artist, title) {
             .replace(/VEVO|Topic|Official/gi, '')
             .trim();
         
-        console.log(`Fetching lyrics for: ${cleanArtist} - ${cleanTitle}`);
-        
-        lyricsContainer.innerHTML = '<p class="no-lyrics">🤖 Generating lyrics with AI...</p>';
+        console.log(`Fetching lyrics: ${cleanArtist} - ${cleanTitle}`);
         
         const response = await fetch(`/api/lyrics?artist=${encodeURIComponent(cleanArtist)}&title=${encodeURIComponent(cleanTitle)}`);
         const data = await response.json();
         
         if (data.lyrics) {
-            console.log('✅ Lyrics loaded:', data.source);
+            console.log('✅ Lyrics loaded');
             
-            // Add source indicator
             let sourceIndicator = '';
             if (data.source === 'ai-generated') {
-                sourceIndicator = '<div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em;">🤖 AI-Generated Lyrics in Original Language</div>';
+                sourceIndicator = '<div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em;">🤖 AI-Generated Lyrics</div>';
             } else if (data.source === 'database') {
                 sourceIndicator = '<div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em;">✅ Official Lyrics</div>';
             }
             
             lyricsContainer.innerHTML = sourceIndicator + `<pre>${data.lyrics}</pre>`;
         } else {
-            lyricsContainer.innerHTML = `
-                <p class="no-lyrics">
-                    😔 Could not generate lyrics<br><br>
-                    <small>Searched for: ${cleanArtist} - ${cleanTitle}</small>
-                </p>
-            `;
+            lyricsContainer.innerHTML = `<p class="no-lyrics">😔 Lyrics not available</p>`;
         }
     } catch (error) {
-        console.error('Lyrics fetch error:', error);
-        lyricsContainer.innerHTML = `
-            <p class="no-lyrics">
-                ⚠️ Could not load lyrics<br><br>
-                <small>Please try another song</small>
-            </p>
-        `;
+        console.error('Lyrics error:', error);
+        lyricsContainer.innerHTML = `<p class="no-lyrics">⚠️ Could not load lyrics</p>`;
     }
 }
 
-// TEST FUNCTION - Remove after debugging
-function testLyrics() {
-    const lyricsContainer = document.getElementById('lyricsContainer');
-    lyricsContainer.innerHTML = `<pre>
-This is a test lyric
-To check if the layout works
-Line 1
-Line 2
-Line 3
-Line 4
-Line 5
-Line 6
-Line 7
-Line 8
-Line 9
-Line 10
-
-If you can see this,
-the layout is working fine!
-
-The issue is with the lyrics API.
-</pre>`;
-}
-
-// Call this after 3 seconds to test
-setTimeout(testLyrics, 3000);
-
 // Initialize
-window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
-
 window.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 App loaded');
     updatePlaylistDisplay();
 });

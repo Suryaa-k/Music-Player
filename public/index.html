@@ -19,8 +19,10 @@
         <div class="main-content">
             <!-- Left Side: Album Art & Controls -->
             <div class="player-section">
-                <!-- Hidden YouTube Player (audio only) -->
-                <div id="player" style="display:none;"></div>
+                <!-- Hidden YouTube Player -->
+                <div id="youtube-player-container" style="position: absolute; left: -9999px; width: 1px; height: 1px;">
+                    <div id="player"></div>
+                </div>
                 
                 <!-- Album Art Display -->
                 <div class="album-art-container">
@@ -68,6 +70,7 @@
         </div>
     </div>
 
+    <!-- Load YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="script.js"></script>
 </body>
