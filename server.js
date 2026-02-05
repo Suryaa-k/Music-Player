@@ -11,47 +11,51 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Jamendo API - No authentication needed!
+// YouTube API endpoint
 app.get('/api/search', async (req, res) => {
   try {
     const { query } = req.query;
+    const API_KEY = process.env.YOUTUBE_API_KEY;
     
-    console.log('Searching Jamendo for:', query);
+    if (!API_KEY) {
+      return res.status(500).json({ 
+        error: 'YouTube API key not configured. Please add YOUTUBE_API_KEY to environment variables.' 
+      });
+    }
     
-    const response = await axios.get('https://api.jamendo.com/v3.0/tracks/', {
+    console.log('🔍 Searching YouTube for:', query);
+    
+    const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
       params: {
-        client_id: '56d30c95',
-        format: 'json',
-        limit: 20,
-        search: query,
-        include: 'musicinfo',
-        audioformat: 'mp32',
-        imagesize: 200
+        part: 'snippet',
+        q: query + ' official audio',
+        type: 'video',
+        videoCategoryId: '10', // Music category
+        maxResults: 20,
+        key: API_KEY
       }
     });
     
-    const items = response.data.results.map(track => ({
-      id: { videoId: track.id },
-      snippet: {
-        title: track.name,
-        channelTitle: track.artist_name,
-        description: track.album_name || '',
-        thumbnails: {
-          default: { url: track.image || 'https://via.placeholder.com/80x60/667eea/ffffff?text=Music' },
-          medium: { url: track.album_image || track.image || 'https://via.placeholder.com/320x180/667eea/ffffff?text=Music' }
-        }
-      },
-      audioUrl: track.audio,
-      duration: track.duration * 1000
-    }));
-    
-    console.log(`✅ Found ${items.length} tracks`);
-    res.json({ items });
+    console.log(`✅ Found ${response.data.items.length} results`);
+    res.json(response.data);
     
   } catch (error) {
-    console.error('❌ Jamendo API Error:', error.message);
+    console.error('❌ YouTube API Error:', error.response?.data || error.message);
+    
+    if (error.response?.status === 403) {
+      return res.status(403).json({ 
+        error: 'YouTube API access denied. Please check API key restrictions in Google Cloud Console.'
+      });
+    }
+    
+    if (error.response?.status === 400) {
+      return res.status(400).json({ 
+        error: 'Invalid API key. Please check your YouTube API key.'
+      });
+    }
+    
     res.status(500).json({ 
-      error: 'Search failed. Please try again.'
+      error: 'Search failed: ' + (error.response?.data?.error?.message || error.message)
     });
   }
 });
@@ -73,4 +77,5 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🎵 Music Player running on port ${PORT}`);
+  console.log(`📡 YouTube API: ${process.env.YOUTUBE_API_KEY ? 'Configured ✅' : 'Not configured ❌'}`);
 });
