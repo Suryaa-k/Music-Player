@@ -11,92 +11,48 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// SoundCloud API endpoint
+// Jamendo API - No authentication needed!
 app.get('/api/search', async (req, res) => {
   try {
     const { query } = req.query;
-    const CLIENT_ID = process.env.SOUNDCLOUD_CLIENT_ID;
     
-    if (!CLIENT_ID) {
-      return res.status(500).json({ 
-        error: 'SoundCloud Client ID not configured. Please add SOUNDCLOUD_CLIENT_ID to environment variables.' 
-      });
-    }
+    console.log('Searching Jamendo for:', query);
     
-    console.log('Searching SoundCloud for:', query);
-    
-    const response = await axios.get('https://api-v2.soundcloud.com/search/tracks', {
+    const response = await axios.get('https://api.jamendo.com/v3.0/tracks/', {
       params: {
-        q: query,
-        client_id: CLIENT_ID,
+        client_id: '56d30c95',
+        format: 'json',
         limit: 20,
-        linked_partitioning: 1
+        search: query,
+        include: 'musicinfo',
+        audioformat: 'mp32',
+        imagesize: 200
       }
     });
     
-    // Transform to our format
-    const items = response.data.collection.map(track => ({
+    const items = response.data.results.map(track => ({
       id: { videoId: track.id },
       snippet: {
-        title: track.title,
-        channelTitle: track.user.username,
-        description: track.description || '',
+        title: track.name,
+        channelTitle: track.artist_name,
+        description: track.album_name || '',
         thumbnails: {
-          default: { url: track.artwork_url || track.user.avatar_url },
-          medium: { url: track.artwork_url ? track.artwork_url.replace('large', 't500x500') : track.user.avatar_url }
+          default: { url: track.image || 'https://via.placeholder.com/80x60/667eea/ffffff?text=Music' },
+          medium: { url: track.album_image || track.image || 'https://via.placeholder.com/320x180/667eea/ffffff?text=Music' }
         }
       },
-      streamUrl: track.media?.transcodings?.find(t => t.format.protocol === 'progressive')?.url || null,
-      duration: track.duration,
-      playbackCount: track.playback_count
+      audioUrl: track.audio,
+      duration: track.duration * 1000
     }));
     
-    console.log(`Found ${items.length} tracks`);
+    console.log(`✅ Found ${items.length} tracks`);
     res.json({ items });
     
   } catch (error) {
-    console.error('SoundCloud API Error:', error.response?.data || error.message);
+    console.error('❌ Jamendo API Error:', error.message);
     res.status(500).json({ 
-      error: 'Search failed: ' + (error.response?.data?.errors?.[0]?.error_message || error.message)
+      error: 'Search failed. Please try again.'
     });
-  }
-});
-
-// Get stream URL for a track
-app.get('/api/stream/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const CLIENT_ID = process.env.SOUNDCLOUD_CLIENT_ID;
-    
-    // Get track info
-    const trackResponse = await axios.get(`https://api-v2.soundcloud.com/tracks/${id}`, {
-      params: { client_id: CLIENT_ID }
-    });
-    
-    const track = trackResponse.data;
-    
-    // Get progressive stream URL
-    const progressive = track.media?.transcodings?.find(t => 
-      t.format.protocol === 'progressive' && t.format.mime_type === 'audio/mpeg'
-    );
-    
-    if (!progressive) {
-      return res.status(404).json({ error: 'Stream not available' });
-    }
-    
-    // Get actual stream URL
-    const streamResponse = await axios.get(progressive.url, {
-      params: { client_id: CLIENT_ID }
-    });
-    
-    res.json({ 
-      url: streamResponse.data.url,
-      duration: track.duration
-    });
-    
-  } catch (error) {
-    console.error('Stream error:', error.message);
-    res.status(500).json({ error: 'Failed to get stream URL' });
   }
 });
 
@@ -107,7 +63,6 @@ app.get('/api/lyrics', async (req, res) => {
     const response = await axios.get(`https://api.lyrics.ovh/v1/${artist}/${title}`);
     res.json(response.data);
   } catch (error) {
-    console.error('Lyrics error:', error.message);
     res.status(404).json({ error: 'Lyrics not found' });
   }
 });
@@ -118,5 +73,4 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🎵 Music Player running on port ${PORT}`);
-  console.log(`Visit: http://localhost:${PORT}`);
 });
