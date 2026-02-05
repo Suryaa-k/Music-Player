@@ -238,19 +238,19 @@ function formatTime(seconds) {
 }
 
 // Lyrics fetching
-// Improved lyrics fetching with better cleaning
+// Improved lyrics fetching with AI generation
 async function fetchLyrics(artist, title) {
     const lyricsContainer = document.getElementById('lyricsContainer');
-    lyricsContainer.innerHTML = '<p class="no-lyrics">🔍 Loading lyrics...</p>';
+    lyricsContainer.innerHTML = '<p class="no-lyrics">🔍 Searching for lyrics...</p>';
 
     try {
         // Clean up artist and title
         let cleanTitle = title
-            .replace(/\(.*?\)/g, '') // Remove (Official Video)
-            .replace(/\[.*?\]/g, '') // Remove [Official Audio]
-            .replace(/\|.*$/g, '')   // Remove | anything
-            .split('-')[0]           // Take first part before -
-            .replace(/official|audio|video|lyric|lyrics|hd|4k/gi, '') // Remove common words
+            .replace(/\(.*?\)/g, '')
+            .replace(/\[.*?\]/g, '')
+            .replace(/\|.*$/g, '')
+            .split('-')[0]
+            .replace(/official|audio|video|lyric|lyrics|hd|4k/gi, '')
             .trim();
         
         let cleanArtist = artist
@@ -261,17 +261,27 @@ async function fetchLyrics(artist, title) {
         
         console.log(`Fetching lyrics for: ${cleanArtist} - ${cleanTitle}`);
         
+        lyricsContainer.innerHTML = '<p class="no-lyrics">🤖 Generating lyrics with AI...</p>';
+        
         const response = await fetch(`/api/lyrics?artist=${encodeURIComponent(cleanArtist)}&title=${encodeURIComponent(cleanTitle)}`);
         const data = await response.json();
         
         if (data.lyrics) {
-            console.log('✅ Lyrics loaded successfully');
-            lyricsContainer.innerHTML = `<pre>${data.lyrics}</pre>`;
+            console.log('✅ Lyrics loaded:', data.source);
+            
+            // Add source indicator
+            let sourceIndicator = '';
+            if (data.source === 'ai-generated') {
+                sourceIndicator = '<div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em;">🤖 AI-Generated Lyrics in Original Language</div>';
+            } else if (data.source === 'database') {
+                sourceIndicator = '<div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em;">✅ Official Lyrics</div>';
+            }
+            
+            lyricsContainer.innerHTML = sourceIndicator + `<pre>${data.lyrics}</pre>`;
         } else {
-            console.log('❌ No lyrics in response');
             lyricsContainer.innerHTML = `
                 <p class="no-lyrics">
-                    😔 Lyrics not found for this song<br><br>
+                    😔 Could not generate lyrics<br><br>
                     <small>Searched for: ${cleanArtist} - ${cleanTitle}</small>
                 </p>
             `;
@@ -281,7 +291,7 @@ async function fetchLyrics(artist, title) {
         lyricsContainer.innerHTML = `
             <p class="no-lyrics">
                 ⚠️ Could not load lyrics<br><br>
-                <small>The lyrics service might be temporarily unavailable</small>
+                <small>Please try another song</small>
             </p>
         `;
     }
