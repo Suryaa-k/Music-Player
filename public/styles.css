@@ -6,14 +6,14 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    background: #0a0a0a;
     min-height: 100vh;
     color: #fff;
     overflow-x: hidden;
     position: relative;
 }
 
-/* Animated background particles */
+/* Unified animated background gradient */
 body::before {
     content: '';
     position: fixed;
@@ -22,17 +22,56 @@ body::before {
     width: 100%;
     height: 100%;
     background: 
-        radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255, 107, 107, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 40% 20%, rgba(72, 219, 251, 0.3) 0%, transparent 50%);
-    animation: float 20s ease-in-out infinite;
+        linear-gradient(135deg, 
+            #1a1a2e 0%, 
+            #16213e 25%, 
+            #0f3460 50%, 
+            #533483 75%, 
+            #e94560 100%
+        );
+    animation: gradientShift 15s ease infinite;
     pointer-events: none;
     z-index: 0;
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+@keyframes gradientShift {
+    0%, 100% {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #533483 75%, #e94560 100%);
+    }
+    33% {
+        background: linear-gradient(135deg, #0f3460 0%, #533483 25%, #e94560 50%, #1a1a2e 75%, #16213e 100%);
+    }
+    66% {
+        background: linear-gradient(135deg, #533483 0%, #e94560 25%, #1a1a2e 50%, #16213e 75%, #0f3460 100%);
+    }
+}
+
+/* Floating particles overlay */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(233, 69, 96, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(83, 52, 131, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(15, 52, 96, 0.15) 0%, transparent 50%);
+    animation: particleFloat 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes particleFloat {
+    0%, 100% { 
+        transform: translateY(0px) scale(1);
+        opacity: 0.6;
+    }
+    50% { 
+        transform: translateY(-30px) scale(1.1);
+        opacity: 0.8;
+    }
 }
 
 .container {
@@ -46,74 +85,85 @@ body::before {
 /* Header with glassmorphism */
 header {
     text-align: center;
-    padding: 30px 20px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 35px 20px;
+    background: rgba(26, 26, 46, 0.4);
+    backdrop-filter: blur(30px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 header h1 {
-    font-size: 2.5em;
-    margin-bottom: 20px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-size: 2.8em;
+    margin-bottom: 25px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #e94560 0%, #533483 50%, #0f3460 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: -1px;
-    animation: glow 3s ease-in-out infinite;
+    letter-spacing: -2px;
+    animation: titleGlow 4s ease-in-out infinite;
+    text-shadow: 0 0 30px rgba(233, 69, 96, 0.3);
 }
 
-@keyframes glow {
-    0%, 100% { filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.5)); }
-    50% { filter: drop-shadow(0 0 20px rgba(118, 75, 162, 0.8)); }
+@keyframes titleGlow {
+    0%, 100% { 
+        filter: drop-shadow(0 0 20px rgba(233, 69, 96, 0.6));
+    }
+    50% { 
+        filter: drop-shadow(0 0 40px rgba(83, 52, 131, 0.8));
+    }
 }
 
 .search-container {
     display: flex;
-    gap: 12px;
-    max-width: 700px;
+    gap: 15px;
+    max-width: 750px;
     margin: 0 auto;
     position: relative;
 }
 
 #searchInput {
     flex: 1;
-    padding: 16px 24px;
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 18px 28px;
+    border: 2px solid rgba(233, 69, 96, 0.2);
     border-radius: 50px;
     font-size: 16px;
     outline: none;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
+    background: rgba(26, 26, 46, 0.6);
+    backdrop-filter: blur(20px);
     color: #fff;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 #searchInput:focus {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(102, 126, 234, 0.5);
-    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+    background: rgba(26, 26, 46, 0.8);
+    border-color: rgba(233, 69, 96, 0.6);
+    box-shadow: 
+        0 8px 30px rgba(233, 69, 96, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
 }
 
 #searchInput::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 #searchBtn {
-    padding: 16px 40px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 18px 45px;
+    background: linear-gradient(135deg, #e94560 0%, #533483 100%);
     color: white;
     border: none;
     border-radius: 50px;
     cursor: pointer;
     font-size: 16px;
-    font-weight: 600;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    font-weight: 700;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 8px 25px rgba(233, 69, 96, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
     position: relative;
     overflow: hidden;
 }
@@ -125,8 +175,8 @@ header h1 {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.6s;
 }
 
 #searchBtn:hover::before {
@@ -135,26 +185,47 @@ header h1 {
 
 #searchBtn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+    box-shadow: 
+        0 15px 40px rgba(233, 69, 96, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 #searchBtn:active {
     transform: translateY(-1px);
 }
 
-/* Main content - Split screen with glassmorphism */
+/* Main content - Unified gradient flow */
 .main-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0;
     min-height: calc(100vh - 350px);
     position: relative;
+    overflow: hidden;
 }
 
-/* Player Section - Left Side */
+/* Unified gradient overlay for seamless transition */
+.main-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        rgba(15, 52, 96, 0.6) 0%,
+        rgba(26, 26, 46, 0.4) 50%,
+        rgba(83, 52, 131, 0.6) 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Player Section - Left Side (Darker) */
 .player-section {
-    background: rgba(30, 58, 95, 0.4);
-    backdrop-filter: blur(20px);
+    background: rgba(15, 52, 96, 0.3);
+    backdrop-filter: blur(40px) saturate(150%);
     padding: 50px;
     display: flex;
     flex-direction: column;
@@ -162,26 +233,77 @@ header h1 {
     align-items: center;
     position: relative;
     overflow: hidden;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* Darker gradient overlay for left */
 .player-section::before {
     content: '';
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
-    animation: rotate 30s linear infinite;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        circle at 30% 50%, 
+        rgba(15, 52, 96, 0.4) 0%, 
+        transparent 70%
+    );
+    animation: pulseLeft 8s ease-in-out infinite;
+    pointer-events: none;
 }
 
-@keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+@keyframes pulseLeft {
+    0%, 100% { 
+        opacity: 0.6;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.9;
+        transform: scale(1.1);
+    }
 }
 
-/* Album Art Container with 3D effect */
+/* Lyrics Section - Right Side (Brighter) */
+.lyrics-section {
+    background: rgba(83, 52, 131, 0.3);
+    backdrop-filter: blur(40px) saturate(150%);
+    padding: 50px;
+    overflow-y: auto;
+    position: relative;
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Brighter gradient overlay for right */
+.lyrics-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        circle at 70% 50%, 
+        rgba(233, 69, 96, 0.3) 0%, 
+        rgba(83, 52, 131, 0.2) 50%,
+        transparent 70%
+    );
+    animation: pulseRight 8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes pulseRight {
+    0%, 100% { 
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 1;
+        transform: scale(1.15);
+    }
+}
+
+/* Album Art Container with enhanced 3D effect */
 .album-art-container {
     position: relative;
     width: 100%;
@@ -192,18 +314,41 @@ header h1 {
     overflow: hidden;
     margin-bottom: 40px;
     box-shadow: 
-        0 30px 60px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 255, 255, 0.1),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        0 40px 80px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(233, 69, 96, 0.3),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1;
 }
 
+.album-art-container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(233, 69, 96, 0.1) 50%,
+        transparent 70%
+    );
+    animation: shimmer 3s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
 .album-art-container:hover {
-    transform: translateY(-10px) scale(1.02);
+    transform: translateY(-15px) scale(1.03) rotateY(5deg);
     box-shadow: 
-        0 40px 80px rgba(0, 0, 0, 0.6),
-        0 0 0 1px rgba(255, 255, 255, 0.2);
+        0 50px 100px rgba(233, 69, 96, 0.5),
+        0 0 0 1px rgba(233, 69, 96, 0.6),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 #albumArt {
@@ -211,25 +356,25 @@ header h1 {
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.5s;
+    transition: transform 0.6s;
 }
 
 .album-art-container:hover #albumArt {
-    transform: scale(1.05);
+    transform: scale(1.08);
 }
 
 /* Now Playing Info */
 .now-playing {
     text-align: center;
-    margin-bottom: 35px;
+    margin-bottom: 40px;
     z-index: 1;
-    animation: fadeInUp 0.6s ease-out;
+    animation: fadeInUp 0.8s ease-out;
 }
 
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(30px);
     }
     to {
         opacity: 1;
@@ -238,220 +383,237 @@ header h1 {
 }
 
 .now-playing h2 {
-    font-size: 1.8em;
-    margin-bottom: 10px;
-    font-weight: 600;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    font-size: 2em;
+    margin-bottom: 12px;
+    font-weight: 700;
+    text-shadow: 
+        0 2px 10px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(233, 69, 96, 0.3);
+    background: linear-gradient(135deg, #fff 0%, #e94560 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .now-playing p {
     color: rgba(255, 255, 255, 0.7);
-    font-size: 1.1em;
-    font-weight: 400;
+    font-size: 1.15em;
+    font-weight: 500;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Controls with modern buttons */
+/* Controls with enhanced buttons */
 .controls {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 25px;
-    margin-bottom: 35px;
+    gap: 30px;
+    margin-bottom: 40px;
     z-index: 1;
 }
 
 .control-btn {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    width: 55px;
-    height: 55px;
+    background: rgba(26, 26, 46, 0.6);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(233, 69, 96, 0.3);
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    font-size: 22px;
+    font-size: 24px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .control-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-3px) scale(1.1);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    background: rgba(233, 69, 96, 0.3);
+    border-color: rgba(233, 69, 96, 0.6);
+    transform: translateY(-5px) scale(1.15);
+    box-shadow: 
+        0 12px 35px rgba(233, 69, 96, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .control-btn:active {
-    transform: translateY(-1px) scale(1.05);
+    transform: translateY(-2px) scale(1.1);
 }
 
 .play-btn {
-    width: 70px;
-    height: 70px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    font-size: 28px;
+    width: 75px;
+    height: 75px;
+    background: linear-gradient(135deg, #e94560 0%, #533483 100%);
+    font-size: 30px;
     border: none;
-    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
+    box-shadow: 
+        0 10px 35px rgba(233, 69, 96, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .play-btn:hover {
-    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.7);
+    box-shadow: 
+        0 15px 50px rgba(233, 69, 96, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 /* Progress Bar */
 .progress-container {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 18px;
     width: 100%;
-    max-width: 450px;
-    margin-bottom: 25px;
+    max-width: 480px;
+    margin-bottom: 28px;
     z-index: 1;
 }
 
 .progress-container span {
-    font-size: 13px;
+    font-size: 14px;
     color: rgba(255, 255, 255, 0.8);
-    min-width: 45px;
-    font-weight: 500;
+    min-width: 48px;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 #progressBar {
     flex: 1;
-    height: 6px;
-    border-radius: 3px;
+    height: 8px;
+    border-radius: 4px;
     outline: none;
     appearance: none;
     -webkit-appearance: none;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(26, 26, 46, 0.6);
     cursor: pointer;
     position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 #progressBar::-webkit-slider-thumb {
     appearance: none;
     -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #e94560 0%, #533483 100%);
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
+    box-shadow: 
+        0 3px 12px rgba(233, 69, 96, 0.6),
+        0 0 0 3px rgba(233, 69, 96, 0.2);
 }
 
 #progressBar::-webkit-slider-thumb:hover {
-    transform: scale(1.3);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.8);
+    transform: scale(1.4);
+    box-shadow: 
+        0 5px 20px rgba(233, 69, 96, 0.9),
+        0 0 0 5px rgba(233, 69, 96, 0.3);
 }
 
 #progressBar::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #e94560 0%, #533483 100%);
     cursor: pointer;
     border: none;
-    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 3px 12px rgba(233, 69, 96, 0.6);
 }
 
 /* Volume Control */
 .volume-container {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 18px;
     width: 100%;
-    max-width: 450px;
+    max-width: 480px;
     z-index: 1;
 }
 
 .volume-container span:first-child {
-    font-size: 22px;
+    font-size: 24px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .volume-container span:last-child {
-    font-size: 13px;
-    min-width: 45px;
+    font-size: 14px;
+    min-width: 48px;
     text-align: right;
-    font-weight: 500;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 #volumeControl {
     flex: 1;
-    height: 6px;
-    border-radius: 3px;
+    height: 8px;
+    border-radius: 4px;
     outline: none;
     appearance: none;
     -webkit-appearance: none;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(26, 26, 46, 0.6);
     cursor: pointer;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 #volumeControl::-webkit-slider-thumb {
     appearance: none;
     -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%);
+    background: linear-gradient(135deg, #0f3460 0%, #533483 100%);
     cursor: pointer;
-    box-shadow: 0 2px 10px rgba(72, 219, 251, 0.5);
+    box-shadow: 
+        0 3px 12px rgba(15, 52, 96, 0.6),
+        0 0 0 3px rgba(15, 52, 96, 0.2);
 }
 
 #volumeControl::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%);
+    background: linear-gradient(135deg, #0f3460 0%, #533483 100%);
     cursor: pointer;
     border: none;
 }
 
-/* Lyrics Section - Right Side */
-.lyrics-section {
-    background: rgba(212, 165, 116, 0.3);
-    backdrop-filter: blur(20px);
-    padding: 50px;
-    overflow-y: auto;
-    position: relative;
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.lyrics-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 70% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-    pointer-events: none;
-}
-
+/* Lyrics Section Styling */
 .lyrics-section h2 {
-    margin-bottom: 30px;
-    font-size: 1.8em;
-    font-weight: 600;
+    margin-bottom: 35px;
+    font-size: 2em;
+    font-weight: 700;
     position: relative;
     z-index: 1;
     color: #fff;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    text-shadow: 
+        0 2px 10px rgba(0, 0, 0, 0.4),
+        0 0 30px rgba(233, 69, 96, 0.3);
+    background: linear-gradient(135deg, #fff 0%, #e94560 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 #lyricsContainer {
     flex: 1;
-    line-height: 2.2;
-    font-size: 1.15em;
+    line-height: 2.4;
+    font-size: 1.2em;
     white-space: pre-wrap;
     position: relative;
     z-index: 1;
     color: rgba(255, 255, 255, 0.95);
     overflow-y: auto;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 20px;
-    backdrop-filter: blur(5px);
+    padding: 25px;
+    background: rgba(26, 26, 46, 0.4);
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
+    box-shadow: 
+        inset 0 2px 10px rgba(0, 0, 0, 0.3),
+        0 4px 20px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 #lyricsContainer pre {
@@ -460,14 +622,15 @@ header h1 {
     word-wrap: break-word;
     margin: 0;
     padding: 0;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .no-lyrics {
     text-align: center;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.5);
     font-style: italic;
-    padding: 80px 20px;
-    font-size: 1.2em;
+    padding: 100px 20px;
+    font-size: 1.3em;
 }
 
 /* Search Results Modal */
@@ -477,19 +640,21 @@ header h1 {
     left: 50%;
     transform: translate(-50%, -50%) scale(0.9);
     width: 90%;
-    max-width: 700px;
-    max-height: 75vh;
-    background: rgba(15, 12, 41, 0.95);
-    backdrop-filter: blur(30px);
-    border-radius: 30px;
-    padding: 40px;
+    max-width: 750px;
+    max-height: 80vh;
+    background: rgba(26, 26, 46, 0.95);
+    backdrop-filter: blur(40px) saturate(180%);
+    border-radius: 35px;
+    padding: 45px;
     overflow-y: auto;
     z-index: 1000;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(233, 69, 96, 0.3);
+    box-shadow: 
+        0 40px 100px rgba(0, 0, 0, 0.9),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     opacity: 0;
     pointer-events: none;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .search-results.show {
@@ -499,132 +664,137 @@ header h1 {
 }
 
 .search-item {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    padding: 18px;
-    margin-bottom: 15px;
-    border-radius: 15px;
+    background: rgba(15, 52, 96, 0.4);
+    backdrop-filter: blur(15px);
+    padding: 20px;
+    margin-bottom: 18px;
+    border-radius: 18px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
-    gap: 18px;
+    gap: 20px;
     align-items: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(233, 69, 96, 0.2);
 }
 
 .search-item:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateX(8px);
-    border-color: rgba(102, 126, 234, 0.5);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    background: rgba(233, 69, 96, 0.3);
+    transform: translateX(10px);
+    border-color: rgba(233, 69, 96, 0.6);
+    box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4);
 }
 
 .search-item img {
-    width: 90px;
-    height: 68px;
-    border-radius: 10px;
+    width: 95px;
+    height: 72px;
+    border-radius: 12px;
     object-fit: cover;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 .search-item-info h4 {
-    margin-bottom: 6px;
-    font-weight: 600;
-    font-size: 1.05em;
+    margin-bottom: 8px;
+    font-weight: 700;
+    font-size: 1.1em;
 }
 
 .search-item-info p {
-    font-size: 0.9em;
+    font-size: 0.95em;
     color: rgba(255, 255, 255, 0.6);
 }
 
 /* Playlist Section */
 .playlist-section {
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(20px);
-    padding: 35px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(26, 26, 46, 0.8);
+    backdrop-filter: blur(30px);
+    padding: 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .playlist-section h3 {
-    margin-bottom: 25px;
-    font-size: 1.4em;
-    font-weight: 600;
+    margin-bottom: 30px;
+    font-size: 1.6em;
+    font-weight: 700;
+    background: linear-gradient(135deg, #fff 0%, #e94560 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 #playlist {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 25px;
 }
 
 .playlist-item {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    padding: 15px;
-    border-radius: 15px;
+    background: rgba(15, 52, 96, 0.4);
+    backdrop-filter: blur(15px);
+    padding: 18px;
+    border-radius: 18px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: center;
-    border: 2px solid transparent;
+    border: 2px solid rgba(233, 69, 96, 0.2);
 }
 
 .playlist-item:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-8px);
-    border-color: rgba(102, 126, 234, 0.5);
-    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+    background: rgba(233, 69, 96, 0.3);
+    transform: translateY(-10px);
+    border-color: rgba(233, 69, 96, 0.6);
+    box-shadow: 0 15px 40px rgba(233, 69, 96, 0.4);
 }
 
 .playlist-item.active {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-    border-color: #667eea;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+    background: linear-gradient(135deg, rgba(233, 69, 96, 0.5) 0%, rgba(83, 52, 131, 0.5) 100%);
+    border-color: #e94560;
+    box-shadow: 0 12px 35px rgba(233, 69, 96, 0.6);
 }
 
 .playlist-item img {
     width: 100%;
     aspect-ratio: 1;
-    border-radius: 12px;
-    margin-bottom: 12px;
+    border-radius: 15px;
+    margin-bottom: 15px;
     object-fit: cover;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 .playlist-item h4 {
-    font-size: 0.95em;
-    margin-bottom: 6px;
-    font-weight: 600;
+    font-size: 1em;
+    margin-bottom: 8px;
+    font-weight: 700;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .playlist-item p {
-    font-size: 0.85em;
+    font-size: 0.9em;
     color: rgba(255, 255, 255, 0.6);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-/* Scrollbar */
+/* Enhanced Scrollbar */
 ::-webkit-scrollbar {
-    width: 10px;
+    width: 12px;
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(26, 26, 46, 0.6);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #e94560 0%, #533483 100%);
     border-radius: 10px;
+    border: 2px solid rgba(26, 26, 46, 0.6);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    background: linear-gradient(135deg, #533483 0%, #e94560 100%);
 }
 
 /* Responsive */
@@ -634,18 +804,18 @@ header h1 {
     }
     
     .player-section {
-        min-height: 650px;
+        min-height: 700px;
         border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
     
     .lyrics-section {
-        min-height: 500px;
+        min-height: 550px;
         border-left: none;
     }
     
     header h1 {
-        font-size: 2em;
+        font-size: 2.2em;
     }
     
     .search-container {
@@ -655,10 +825,14 @@ header h1 {
 
 @media (max-width: 768px) {
     .album-art-container {
-        max-width: 320px;
+        max-width: 340px;
     }
     
     #playlist {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    
+    header h1 {
+        font-size: 1.8em;
     }
 }
