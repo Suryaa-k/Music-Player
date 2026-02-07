@@ -1,3 +1,50 @@
+const express = require('express');
+const cors = require('cors');
+const axios = require('axios');
+const path = require('path');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+
+// YouTube API endpoint
+app.get('/api/search', async (req, res) => {
+  try {
+    const { query } = req.query;
+    const API_KEY = process.env.YOUTUBE_API_KEY;
+    
+    if (!API_KEY) {
+      return res.status(500).json({ 
+        error: 'YouTube API key not configured.' 
+      });
+    }
+    
+    console.log('🔍 Searching YouTube for:', query);
+    
+    const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+      params: {
+        part: 'snippet',
+        q: query + ' official audio',
+        type: 'video',
+        videoCategoryId: '10',
+        maxResults: 20,
+        key: API_KEY
+      }
+    });
+    
+    console.log(`✅ Found ${response.data.items.length} results`);
+    res.json(response.data);
+    
+  } catch (error) {
+    console.error('❌ YouTube API Error:', error.message);
+    res.status(500).json({ error: 'Search failed' });
+  }
+});
+
 // Multi-source lyrics fetcher with original language support
 app.get('/api/lyrics', async (req, res) => {
   try {
@@ -41,7 +88,7 @@ app.get('/api/lyrics', async (req, res) => {
       console.log('❌ lyrics.ovh failed');
     }
     
-    // Method 2: Try Genius via some-random-api
+    // Method 2: Try some-random-api
     try {
       console.log('Trying some-random-api...');
       const searchQuery = `${cleanArtist} ${cleanTitle}`;
@@ -61,39 +108,17 @@ app.get('/api/lyrics', async (req, res) => {
       console.log('❌ some-random-api failed');
     }
     
-    // Method 3: Try ChartLyrics API
-    try {
-      console.log('Trying ChartLyrics...');
-      const response3 = await axios.get(
-        `http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=${encodeURIComponent(cleanArtist)}&song=${encodeURIComponent(cleanTitle)}`,
-        { timeout: 5000 }
-      );
-      
-      // Parse XML response
-      const lyricMatch = response3.data.match(/<Lyric>([\s\S]*?)<\/Lyric>/);
-      if (lyricMatch && lyricMatch[1] && lyricMatch[1].trim()) {
-        console.log('✅ Found via ChartLyrics');
-        return res.json({ 
-          lyrics: lyricMatch[1].trim(),
-          source: 'chartlyrics',
-          language: 'original'
-        });
-      }
-    } catch (err) {
-      console.log('❌ ChartLyrics failed');
-    }
-    
-    // Method 4: Try Musixmatch-style search
+    // Method 3: Try alternative search
     try {
       console.log('Trying alternative search...');
       const searchTerm = `${cleanTitle} ${cleanArtist} lyrics`;
-      const response4 = await axios.get(
+      const response3 = await axios.get(
         `https://api.lyrics.ovh/suggest/${encodeURIComponent(searchTerm)}`,
         { timeout: 5000 }
       );
       
-      if (response4.data && response4.data.data && response4.data.data.length > 0) {
-        const firstResult = response4.data.data[0];
+      if (response3.data && response3.data.data && response3.data.data.length > 0) {
+        const firstResult = response3.data.data[0];
         const lyricsResponse = await axios.get(
           `https://api.lyrics.ovh/v1/${encodeURIComponent(firstResult.artist.name)}/${encodeURIComponent(firstResult.title)}`,
           { timeout: 5000 }
@@ -112,7 +137,7 @@ app.get('/api/lyrics', async (req, res) => {
       console.log('❌ Alternative search failed');
     }
     
-    // Method 5: AI Generation as LAST RESORT with better prompt
+    // Method 4: AI Generation as LAST RESORT
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     
     if (GEMINI_API_KEY) {
@@ -215,4 +240,16 @@ Generate authentic ${language} lyrics NOW in ${scriptMap[language]}:`;
     console.error('Lyrics error:', error.message);
     res.status(500).json({ error: 'Lyrics search failed' });
   }
+});
+
+// Root route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🎵 Music Player running on port ${PORT}`);
+  console.log(`📡 YouTube API: ${process.env.YOUTUBE_API_KEY ? '✅' : '❌'}`);
+  console.log(`🤖 Gemini AI: ${process.env.GEMINI_API_KEY ? '✅' : '❌'}`);
 });
