@@ -46,201 +46,88 @@ app.get('/api/search', async (req, res) => {
 });
 
 // Multi-source lyrics fetcher with original language support
-app.get('/api/lyrics', async (req, res) => {
+// Alternative: Genius lyrics scraper
+app.get('/api/lyrics-genius', async (req, res) => {
   try {
     const { artist, title } = req.query;
     
-    console.log(`🔍 Searching lyrics for: ${artist} - ${title}`);
+    const searchQuery = `${artist} ${title}`;
+    console.log(`🔍 Searching Genius for: ${searchQuery}`);
     
-    // Clean up the search terms
-    const cleanTitle = title
-      .replace(/\(.*?\)/g, '')
-      .replace(/\[.*?\]/g, '')
-      .replace(/\|.*$/g, '')
-      .split('-')[0]
-      .replace(/official|audio|video|lyric|lyrics|hd|4k|full|song/gi, '')
-      .trim();
+    // Use Genius API via some-random-api
+    const response = await axios.get(
+      `https://some-random-api.com/lyrics?title=${encodeURIComponent(searchQuery)}`,
+      { timeout: 10000 }
+    );
     
-    const cleanArtist = artist
-      .split('-')[0]
-      .split('•')[0]
-      .replace(/VEVO|Topic|Official|Music/gi, '')
-      .trim();
-    
-    console.log(`Cleaned: ${cleanArtist} - ${cleanTitle}`);
-    
-    // Method 1: Try lyrics.ovh
-    try {
-      console.log('Trying lyrics.ovh...');
-      const response1 = await axios.get(
-        `https://api.lyrics.ovh/v1/${encodeURIComponent(cleanArtist)}/${encodeURIComponent(cleanTitle)}`,
-        { timeout: 5000 }
-      );
-      if (response1.data && response1.data.lyrics) {
-        console.log('✅ Found via lyrics.ovh');
-        return res.json({ 
-          lyrics: response1.data.lyrics,
-          source: 'lyrics.ovh',
-          language: 'original'
-        });
-      }
-    } catch (err) {
-      console.log('❌ lyrics.ovh failed');
+    if (response.data && response.data.lyrics) {
+      console.log('✅ Found on Genius');
+      return res.json({
+        lyrics: response.data.lyrics,
+        source: 'genius'
+      });
     }
     
-    // Method 2: Try some-random-api
-    try {
-      console.log('Trying some-random-api...');
-      const searchQuery = `${cleanArtist} ${cleanTitle}`;
-      const response2 = await axios.get(
-        `https://some-random-api.com/lyrics?title=${encodeURIComponent(searchQuery)}`,
-        { timeout: 5000 }
-      );
-      if (response2.data && response2.data.lyrics) {
-        console.log('✅ Found via some-random-api');
-        return res.json({ 
-          lyrics: response2.data.lyrics,
-          source: 'genius',
-          language: 'original'
-        });
-      }
-    } catch (err) {
-      console.log('❌ some-random-api failed');
-    }
-    
-    // Method 3: Try alternative search
-    try {
-      console.log('Trying alternative search...');
-      const searchTerm = `${cleanTitle} ${cleanArtist} lyrics`;
-      const response3 = await axios.get(
-        `https://api.lyrics.ovh/suggest/${encodeURIComponent(searchTerm)}`,
-        { timeout: 5000 }
-      );
-      
-      if (response3.data && response3.data.data && response3.data.data.length > 0) {
-        const firstResult = response3.data.data[0];
-        const lyricsResponse = await axios.get(
-          `https://api.lyrics.ovh/v1/${encodeURIComponent(firstResult.artist.name)}/${encodeURIComponent(firstResult.title)}`,
-          { timeout: 5000 }
-        );
-        
-        if (lyricsResponse.data && lyricsResponse.data.lyrics) {
-          console.log('✅ Found via suggest search');
-          return res.json({ 
-            lyrics: lyricsResponse.data.lyrics,
-            source: 'lyrics.ovh-suggest',
-            language: 'original'
-          });
-        }
-      }
-    } catch (err) {
-      console.log('❌ Alternative search failed');
-    }
-    
-    // Method 4: AI Generation as LAST RESORT
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    
-    if (GEMINI_API_KEY) {
-      console.log('🤖 Generating with AI as last resort...');
-      
-      // Detect language
-      const detectLanguage = () => {
-        const text = (title + ' ' + artist).toLowerCase();
-        
-        // Indian language keywords
-        if (text.includes('shararat') || text.includes('dhurandhar') || 
-            text.includes('ranveer') || text.includes('madhubanti')) return 'Hindi';
-        if (text.includes('bahubali') || text.includes('prabhas') || 
-            text.includes('jiyo')) return 'Hindi';
-        if (text.includes('allu arjun') || text.includes('pushpa')) return 'Telugu';
-        if (text.includes('vijay') || text.includes('thalapathy')) return 'Tamil';
-        
-        // Check for Devanagari or other scripts
-        if (/[\u0900-\u097F]/.test(title + artist)) return 'Hindi';
-        if (/[\u0C00-\u0C7F]/.test(title + artist)) return 'Telugu';
-        if (/[\u0B80-\u0BFF]/.test(title + artist)) return 'Tamil';
-        
-        return 'English';
-      };
-      
-      const language = detectLanguage();
-      console.log(`Detected language: ${language}`);
-      
-      const scriptMap = {
-        'Hindi': 'Devanagari (हिंदी)',
-        'Telugu': 'Telugu script (తెలుగు)',
-        'Tamil': 'Tamil script (தமிழ்)',
-        'Kannada': 'Kannada script (ಕನ್ನಡ)',
-        'Malayalam': 'Malayalam script (മലയാളം)',
-        'English': 'English'
-      };
-      
-      const prompt = `Generate song lyrics for "${cleanTitle}" by "${cleanArtist}".
-
-STRICT REQUIREMENTS:
-1. Language: ${language}
-2. Script: ${scriptMap[language]}
-3. Write ONLY in ${scriptMap[language]} - NO English translation
-4. Use authentic ${language} words and poetic expressions
-5. Format: [Verse 1], [Chorus], [Verse 2], [Bridge] structure
-6. Length: 20-25 lines
-7. Make it meaningful and poetic
-
-Example format for Hindi:
-[Verse 1]
-पहली लाइन यहाँ
-दूसरी लाइन यहाँ
-
-[Chorus]
-कोरस यहाँ
-
-Generate authentic ${language} lyrics NOW in ${scriptMap[language]}:`;
-
-      try {
-        const aiResponse = await axios.post(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
-          {
-            contents: [{
-              parts: [{ text: prompt }]
-            }],
-            generationConfig: {
-              temperature: 0.9,
-              maxOutputTokens: 2048
-            }
-          },
-          {
-            headers: { 'Content-Type': 'application/json' },
-            timeout: 10000
-          }
-        );
-        
-        const generatedLyrics = aiResponse.data.candidates[0].content.parts[0].text;
-        
-        console.log('✅ AI-generated lyrics created');
-        return res.json({ 
-          lyrics: generatedLyrics,
-          source: 'ai-generated',
-          language: language,
-          note: `🤖 AI-generated ${language} lyrics (not official)`
-        });
-        
-      } catch (aiError) {
-        console.error('AI generation failed:', aiError.message);
-      }
-    }
-    
-    // Final fallback
-    console.log('❌ All methods failed');
-    res.status(404).json({ 
-      error: 'Lyrics not found',
-      message: `Could not find lyrics for "${cleanTitle}" by "${cleanArtist}"`
-    });
+    res.status(404).json({ error: 'Not found' });
     
   } catch (error) {
-    console.error('Lyrics error:', error.message);
-    res.status(500).json({ error: 'Lyrics search failed' });
+    console.error('Genius error:', error.message);
+    res.status(500).json({ error: 'Failed' });
   }
 });
+
+// In fetchLyrics function, update to:
+async function fetchLyrics(artist, title) {
+    const lyricsContainer = document.getElementById('lyricsContainer');
+    lyricsContainer.innerHTML = '<p class="no-lyrics">🔍 Loading lyrics...</p>';
+
+    try {
+        let cleanTitle = title
+            .replace(/\(.*?\)/g, '')
+            .replace(/\[.*?\]/g, '')
+            .replace(/\|.*$/g, '')
+            .split('-')[0]
+            .replace(/official|audio|video|lyric|lyrics|hd|4k|full/gi, '')
+            .trim();
+        
+        let cleanArtist = artist
+            .split('-')[0]
+            .split('•')[0]
+            .replace(/VEVO|Topic|Official/gi, '')
+            .trim();
+        
+        console.log(`Fetching lyrics: ${cleanArtist} - ${cleanTitle}`);
+        
+        // Try main endpoint
+        let response = await fetch(`/api/lyrics?artist=${encodeURIComponent(cleanArtist)}&title=${encodeURIComponent(cleanTitle)}`);
+        let data = await response.json();
+        
+        // If failed, try Genius endpoint
+        if (!data.lyrics || data.source === 'not-found') {
+            console.log('Trying Genius...');
+            response = await fetch(`/api/lyrics-genius?artist=${encodeURIComponent(cleanArtist)}&title=${encodeURIComponent(cleanTitle)}`);
+            data = await response.json();
+        }
+        
+        if (data.lyrics) {
+            console.log('✅ Lyrics loaded');
+            
+            let sourceIndicator = '';
+            if (data.source === 'ai-generated') {
+                sourceIndicator = '<div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em;">🤖 AI-Generated Lyrics</div>';
+            } else if (data.source === 'database' || data.source === 'genius') {
+                sourceIndicator = '<div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em;">✅ Official Lyrics</div>';
+            }
+            
+            lyricsContainer.innerHTML = sourceIndicator + `<pre>${data.lyrics}</pre>`;
+        } else {
+            lyricsContainer.innerHTML = `<p class="no-lyrics">😔 Lyrics not available</p>`;
+        }
+    } catch (error) {
+        console.error('Lyrics error:', error);
+        lyricsContainer.innerHTML = `<p class="no-lyrics">⚠️ Could not load lyrics</p>`;
+    }
+}
 
 // Root route
 app.get('/', (req, res) => {
